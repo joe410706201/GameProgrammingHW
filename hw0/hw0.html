@@ -1,0 +1,113 @@
+<!DOCTYPE HTML>
+<html>
+	<head>
+		<style> 
+			body{
+				overflow:hidden;
+			} 
+		</style>
+	</head>
+	<title>hw0.html</title>
+	<body>
+		<div id="info">Train Animation<br>
+			<button id='toggle'>Toggle</button>
+			<style>
+				#info{
+					background-color: green;
+					position:  absolute;
+					top: 0px;
+					width: 100%;
+					padding: 10px;
+					text-align: center;
+					color: #ffff00;
+				}
+			</style>
+		</div>
+		<script src="https://cdnjs.cloudflare.com/ajax/libs/stats.js/r16/Stats.min.js"></script>
+		<script src = "https://threejs.org/build/three.min.js"></script>
+		<script src = "https://threejs.org/examples/js/controls/OrbitControls.js"></script>
+		<script src = "https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+		<script>
+			var angle = 0;
+			var train;
+			var clock = new THREE.Clock();
+			var turn = false;
+			var trackout,trackin;
+			var renderer, scene, camera;
+			$('#toggle').click(function(){
+				turn = !turn;
+				if (turn){
+					$('#toggle').text('stop');
+				}
+				else{
+					$('#toggle').text('turn');
+				}
+			});
+			init();
+			animate();
+			function maketrack(r){
+				var points = [];
+				var theta
+				for (var i = 0;i<100;i++){
+					theta = i*Math.PI*2/100;
+					var point = new THREE.Vector3(r*Math.cos(theta),0,-r*Math.sin(theta));
+					points.push(point);
+				}
+				var geom = new THREE.BufferGeometry().setFromPoints(points);
+				var line = new THREE.Line(geom,new THREE.LineBasicMaterial({color: 0xff0000}));
+				return line;
+			}
+			function maketrain(){
+				var train = new THREE.Group();
+				var cubeGeometry = new THREE.BoxGeometry(3,1,2);
+				var cubeMaterial = new THREE.MeshNormalMaterial();
+				var cube = new THREE.Mesh(cubeGeometry,cubeMaterial);
+				cube.position.y = 0.5;
+				var chinney = new THREE.Mesh(new THREE.CylinderGeometry(0.5,0.5,2),new THREE.MeshNormalMaterial());
+				chinney.position.y = 1.0;
+				train.add(cube,chinney);
+				return train;
+			}
+			function init(){
+				stats = new Stats();
+				stats.domElement.style.position = 'absolute';
+				stats.domElement.style.top = '0px';
+				stats.domElement.style.zIndex = 100;
+				document.body.appendChild( stats.domElement );
+				renderer = new THREE.WebGLRenderer();
+				document.body.appendChild(renderer.domElement);
+				var width = window.innerWidth;
+				var height = window.innerHeight;
+				renderer.setSize(width,height);
+				scene = new	THREE.Scene();
+				var grid = new THREE.GridHelper(20,20);
+				scene.add(grid);
+				var axes = new THREE.AxesHelper(5);
+				scene.add(axes);
+				camera = new THREE.PerspectiveCamera(35,width/height,1,100);
+				camera.position.y = 16;
+				camera.position.x = 40;
+				camera.lookAt(new THREE.Vector3(0,0,0));
+				train = maketrain();
+				trackout = maketrack(7);
+				trackin = maketrack(9);
+				scene.add (train);
+				scene.add(trackout,trackin);
+				
+			}
+			function animate(){
+				stats.update();
+				if (turn)angle += clock.getDelta()*(Math.PI/30)*2;
+				train.rotation.y = angle + 1.5*Math.PI;
+				train.position.set (8*Math.cos(angle), 0, -8*Math.sin(angle));
+				requestAnimationFrame(animate);
+				render();
+			}
+			function render(){
+				renderer.render(scene,camera);
+			}
+			
+		</script>
+		
+	</body>
+</html>
