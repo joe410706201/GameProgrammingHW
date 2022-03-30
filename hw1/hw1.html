@@ -1,0 +1,251 @@
+<!DOCTYPE HTML>
+<html>
+<head>
+	<title>hw1.html</title>
+</head>
+<body>
+	<style>
+		#info {
+			position: absolute;
+			top: 0px;
+			width: 100%;
+			padding: 0px;
+			text-align: center;
+			color: #ffff00
+		}
+		body {
+			overflow: hidden;
+		}
+	</style>
+	<p align = "center">I4B01 ¥Û¥°Öö<br><u>E-mail: u10706201@ms.ttu.edu.tw</u></p>
+	<div id="info">hw1 Game Physics</div>
+	<script src="https://threejs.org/build/three.min.js"></script>
+	<script src="https://threejs.org/examples/js/controls/OrbitControls.js"></script>
+	<script>
+		javascript:(function(){var script=document.createElement('script');script.onload=function(){var stats=new Stats();document.body.appendChild(stats.dom);requestAnimationFrame(function loop(){stats.update();requestAnimationFrame(loop)});};script.src='https://mrdoob.github.io/stats.js/build/stats.min.js';document.head.appendChild(script);})()
+
+		var camera, scene, renderer;
+		const hvalues = [30,60,90,120,150,173,200,230,260,299,302,350];
+		const x_value = [5,20,35,50,65,-5,-20,-35,-50,-65]
+		const z_value = [5,20,35,50,65,-5,-20,-35,-50,-65]
+		var used = [];
+		var lights = [];
+		var angle = 0;
+		var walls = [];
+		var pucks = [];
+		var puck,light;
+		function isused(index){
+			if (used.length === 0){
+				return false;
+			}
+			for (var i = 0;i < used.length;i++){
+				if (used[i] === index){
+					return true;
+				}
+			}
+			return false;
+		}
+		 class speed{
+			constructor(x,z){
+				this.x = x;
+				this.z = z;
+			}
+		 }
+		class point{
+			constructor(x, y, z) {
+				this.x = x;
+				this.y = y;
+				this.z = z;
+			}
+			show(){
+				console.log(this.x,this.y,this.z)
+			}
+		}
+		class Puck{
+			constructor(hvalue,speed){
+				this.id = Math.floor(Math.random()*x_value.length); 
+				while(isused(this.id) === true){
+					this.id = Math.floor(Math.random()*x_value.length);
+				}
+				let puckMat = new THREE.MeshPhongMaterial();
+				puckMat.color = new THREE.Color().setHSL (hvalue/360,.98,.44);
+				this.mesh = new THREE.Mesh (new THREE.CylinderGeometry(10,10,4,20), puckMat);
+				this.mesh.position.set(x_value[this.id],0,z_value[this.id]);
+				used.push(this.id);
+				this.speed = speed;
+				scene.add(this.mesh);
+				this.r = 10;
+			}
+			getx(){
+				return this.mesh.position.x;
+			}
+			gety(){
+				return this.mesh.position.y;
+			}
+			getz(){
+				return this.mesh.position.z;
+			}
+			changespeed(speed){
+				this.speed = speed
+			}
+			updatespeed(vector){
+				this.speed.x += vector.x;
+				this.speed.x += vector.x;
+			}
+			moveposition(vector){//move 
+				this.mesh.position.x += vector.x;
+				this.mesh.position.y += vector.y;
+				this.mesh.position.z += vector.z;
+			}
+		}
+		class Light{ 
+			constructor(hvalue){
+				this.light = new THREE.PointLight( 0xffffff, 1);
+				this.light.color = new THREE.Color().setHSL (hvalue/360,.98,.44);
+				this.light.position.set( 50, 50, 50 );
+				scene.add( this.light );
+			}
+		}
+		function Wall(pt,side,width,height){
+			box = new THREE.BoxGeometry(side,height,width);
+			this.wallmesh = new THREE.Mesh (box, new THREE.MeshBasicMaterial({color:"gray", transparent: true, opacity:0.6}));
+			this.wallmesh.position.x = pt.x;
+			this.wallmesh.position.y = pt.y;
+			this.wallmesh.position.z = pt.z;
+			scene.add(this.wallmesh);
+		}
+		class wall{
+			consturctor(pt,side,width,height){
+				this.side = side;
+				this.width = width;
+				this.height = height;
+				var box = new THREE.BoxGeometry(side,height,width);
+				var wallmesh = new THREE.Mesh (box, new THREE.MeshBasicMaterial({color:"pink", transparent: true, opacity:0.4}));
+				this.position = pt;
+				scene.add(wallmesh);
+			}
+			show(){
+				console.log(self.side);
+			}
+		}
+		function puck_colision(puck){
+			var oldspeed = puck.speed;
+			var position = puck.mesh.position;
+			if (position.x > 80-puck.r){
+				puck.changespeed(new speed(-oldspeed.x,oldspeed.z));//fix speed
+				puck.mesh.position.x = 70;//fix position
+				return;
+			}
+			if (position.x < -80+puck.r){
+				puck.changespeed(new speed(-oldspeed.x,oldspeed.z));//fix speed
+				puck.mesh.position.x = -70;//fix position
+				return;
+			}
+			if (position.z > 80-puck.r){
+				puck.changespeed(new speed(oldspeed.x,-oldspeed.z));//fix speed
+				puck.mesh.position.z = 70;//fix position
+				return;
+			}
+			if (position.z < -80+puck.r){
+				puck.changespeed(new speed(oldspeed.x,-oldspeed.z));//fix speed
+				puck.mesh.position.z = -70;//fix position
+				return;
+			}
+		}
+		function crash(index){
+			var puck,speed1,position,other,d,sum_r;
+			puck = pucks[index];
+			speed1 = puck.speed;
+			position = puck.mesh.position;
+			for (var i = 0;i < pucks.length;i++){
+				if (i !== index){
+					other = pucks[i];
+					d = position.distanceTo(other.mesh.position);
+					if (d <= 20){
+						var unitx,unitz,x1,x2,z1,z2,speed2,remain;
+						speed2 = other.speed;
+						x1 = pucks[i].getx();
+						x2 = pucks[index].getx();
+						z1 = pucks[i].getz();
+						z2 = pucks[index].getz();
+						unitx = (x1-x2)/d;
+						unitz = (z1-z2)/d;
+						//fix speed
+						pucks[i].updatespeed(new speed(unitx,unitz));
+						pucks[index].updatespeed(new speed(-unitx,-unitz));
+						// fix position
+						pucks[i].mesh.position.set(x1+unitx,0,z1+unitz);
+						pucks[index].mesh.position.set(x2-unitx,0,z2-unitz);
+						return;
+					}
+					
+				}
+			}
+		}
+		init();
+		animate();
+
+		function init() {
+
+			scene = new THREE.Scene();
+
+			renderer = new THREE.WebGLRenderer();
+			renderer.setSize(window.innerWidth, window.innerHeight);
+			renderer.setClearColor(0x888888);
+			document.body.appendChild(renderer.domElement);
+
+			camera = new THREE.PerspectiveCamera(50, window.innerWidth / window.innerHeight, 1, 1000);
+			camera.position.set (0,400,0);
+			let controls = new THREE.OrbitControls(camera, renderer.domElement);
+
+  
+			var floor = new THREE.Mesh (new THREE.PlaneGeometry(200,200), new THREE.MeshPhongMaterial({color:"gray"}));
+			floor.rotation.x = -Math.PI/2;
+			scene.add (floor);
+
+  ////////////////////////////////////////////////////////
+			for (var i = 0;i<2;i++){
+				light = new Light(hvalues[i*2]);
+				puck = new Puck(hvalues[i*2],new speed(1,1));
+				pucks.push(puck);
+				lights.push(light);
+			}/*
+			for (var i = 2;i<5;i++){
+				light = new Light(hvalues[i*2]);
+				puck = new Puck(hvalues[i*2],new speed(-1,1));
+				pucks.push(puck);
+				lights.push(light);
+			}*/
+			var w1 = new Wall(new point(0,10,-85),180,10,20);
+			walls.push(w1);
+			var w2 = new Wall(new point(-85,10,0),10,180,20);
+			walls.push(w2);
+			var w3 = new Wall(new point(0,10,85),180,10,20);
+			walls.push(w3);
+			var w4 = new Wall(new point(85,10,0),10,180,20);
+			walls.push(w4);
+		}
+
+		function animate() {
+			const rate  = 0.5;
+			for (var i = 0;i < pucks.length;i++){
+				puck_colision(pucks[i]);
+				crash(i);
+				pucks[i].moveposition(new point(pucks[i].speed.x*rate,0,pucks[i].speed.z*rate));
+				lights[i].light.position.copy (pucks[i].mesh.position);
+				lights[i].light.position.y += 12;
+			}
+			
+			requestAnimationFrame(animate);
+			render();
+		}
+
+		function render() {
+
+			renderer.render(scene, camera);
+
+		}
+
+	</script>
+</body>
+</html>
