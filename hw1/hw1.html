@@ -11,7 +11,7 @@
 			width: 100%;
 			padding: 0px;
 			text-align: center;
-			color: #ff0000;
+			color: #00ff00;
 			background: #ff00ff;
 		}
 		body {
@@ -20,23 +20,37 @@
 	</style>
 	<div id="info">hw1<br> 
 		Game Physics<br>
-		<u>E-mail: u10706201@ms.ttu.edu.tw</u>
+		<u>E-mail: u10706201@ms.ttu.edu.tw</u><br>
+		<button id='toggle'>Start Animation</button>
 	</div>
-	<script src="https://threejs.org/build/three.min.js"></script>
-	<script src="https://threejs.org/examples/js/controls/OrbitControls.js"></script>
+	<script src="https://cdnjs.cloudflare.com/ajax/libs/stats.js/r16/Stats.min.js"></script>
+	<script src = "https://threejs.org/build/three.min.js"></script>
+	<script src = "https://threejs.org/examples/js/controls/OrbitControls.js"></script>
+	<script src = "https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
 	<script>
 		javascript:(function(){var script=document.createElement('script');script.onload=function(){var stats=new Stats();document.body.appendChild(stats.dom);requestAnimationFrame(function loop(){stats.update();requestAnimationFrame(loop)});};script.src='https://mrdoob.github.io/stats.js/build/stats.min.js';document.head.appendChild(script);})()
+		
 
-		var camera, scene, renderer;
+		var camera, scene, renderer,turn;
 		const hvalues = [30,60,90,120,150,173,200,230,260,299,302,350];
 		const x_value = [5,20,35,50,65,-5,-20,-35,-50,-65]
 		const z_value = [5,20,35,50,65,-5,-20,-35,-50,-65]
 		var used = [];
+		var sound1,sound2;
 		var lights = [];
 		var angle = 0;
 		var walls = [];
 		var pucks = [];
 		var puck,light;
+		$('#toggle').click(function(){
+				turn = !turn;
+				if (turn){
+					$('#toggle').text('stop');
+				}
+				else{
+					$('#toggle').text('restart');
+				}
+			});
 		function isused(index){
 			if (used.length === 0){
 				return false;
@@ -47,6 +61,23 @@
 				}
 			}
 			return false;
+		}
+		// creat sound class
+		class sound{
+			constructor(src) {
+			this.sound = document.createElement("audio");
+			this.sound.src = src;
+			this.sound.setAttribute("preload", "auto");
+			this.sound.setAttribute("controls", "none");
+			this.sound.style.display = "none";
+			document.body.appendChild(this.sound);
+			}
+			play(){
+				this.sound.play();
+			}
+			stop(){
+				this.sound.pause();
+			}
 		}
 		 class speed{
 			constructor(x,z){
@@ -137,21 +168,25 @@
 			if (position.x > 80-puck.r){
 				puck.changespeed(new speed(-oldspeed.x,oldspeed.z));//fix speed
 				puck.mesh.position.x = 70;//fix position
+				sound1.play();
 				return;
 			}
 			if (position.x < -80+puck.r){
 				puck.changespeed(new speed(-oldspeed.x,oldspeed.z));//fix speed
 				puck.mesh.position.x = -70;//fix position
+				sound1.play();
 				return;
 			}
 			if (position.z > 80-puck.r){
 				puck.changespeed(new speed(oldspeed.x,-oldspeed.z));//fix speed
 				puck.mesh.position.z = 70;//fix position
+				sound1.play();
 				return;
 			}
 			if (position.z < -80+puck.r){
 				puck.changespeed(new speed(oldspeed.x,-oldspeed.z));//fix speed
 				puck.mesh.position.z = -70;//fix position
+				sound1.play();
 				return;
 			}
 		}
@@ -179,6 +214,7 @@
 						// fix position
 						pucks[i].mesh.position.set(x1+unitx,0,z1+unitz);
 						pucks[index].mesh.position.set(x2-unitx,0,z2-unitz);
+						sound2.play();
 						return;
 					}
 					
@@ -191,12 +227,13 @@
 		function init() {
 
 			scene = new THREE.Scene();
-
+			turn = false;
 			renderer = new THREE.WebGLRenderer();
 			renderer.setSize(window.innerWidth, window.innerHeight);
 			renderer.setClearColor(0x888888);
 			document.body.appendChild(renderer.domElement);
-
+			sound1 = new sound("wallsound.wav");
+			sound2 = new sound("pucksound.wav");
 			camera = new THREE.PerspectiveCamera(50, window.innerWidth / window.innerHeight, 1, 1000);
 			camera.position.set (0,400,0);
 			let controls = new THREE.OrbitControls(camera, renderer.domElement);
@@ -207,15 +244,31 @@
 			scene.add (floor);
 
   ////////////////////////////////////////////////////////
-			for (var i = 0;i<2;i++){
+			for (var i = 0;i<5;i++){
+				var x,y,a,b;
+				a = Math.floor(Math.random()*6);
+				b = Math.floor(Math.random()*6);
+				// create speed randomly 
+				if (a%3 === 0){
+					x = 1; 
+				}
+				else if(a%3 === 1){
+					x = 0;
+				}
+				else if(a%3 === 2){
+					x = -1;
+				}
+				if (b%3 === 0){
+					z = 1;
+				}
+				else if(b%3 === 1){
+					z = 0;
+				}
+				else if(b%3 === 2){
+					z = -1;
+				}
 				light = new Light(hvalues[i*2]);
-				puck = new Puck(hvalues[i*2],new speed(1,1));
-				pucks.push(puck);
-				lights.push(light);
-			}
-			for (var i = 2;i<5;i++){
-				light = new Light(hvalues[i*2]);
-				puck = new Puck(hvalues[i*2],new speed(-1,1));
+				puck = new Puck(hvalues[i*2],new speed(a,b));
 				pucks.push(puck);
 				lights.push(light);
 			}
@@ -230,7 +283,13 @@
 		}
 
 		function animate() {
-			const rate  = 0.5;
+			var rate;
+			if (turn === false){
+				rate = 0;
+			}
+			else{
+				rate = 0.2;
+			}
 			for (var i = 0;i < pucks.length;i++){
 				puck_colision(pucks[i]);
 				crash(i);
