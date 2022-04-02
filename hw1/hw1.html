@@ -32,7 +32,7 @@
 		
 
 		var camera, scene, renderer,turn;
-		const hvalues = [30,60,90,120,150,173,200,230,260,299,302,350];
+		const hvalues = [0,20,50,75,99,120,140,180,220,250,280,310,345];
 		const x_value = [5,20,35,50,65,-5,-20,-35,-50,-65]
 		const z_value = [5,20,35,50,65,-5,-20,-35,-50,-65]
 		var used = [];
@@ -191,29 +191,23 @@
 			}
 		}
 		function crash(index){
-			var puck,speed1,position,other,d,sum_r;
+			var puck,position,other,d;
 			puck = pucks[index];
-			speed1 = puck.speed;
 			position = puck.mesh.position;
 			for (var i = 0;i < pucks.length;i++){
 				if (i !== index){
 					other = pucks[i];
 					d = position.distanceTo(other.mesh.position);
 					if (d <= 20){
-						var unitx,unitz,x1,x2,z1,z2,speed2,remain;
-						speed2 = other.speed;
-						x1 = pucks[i].getx();
-						x2 = pucks[index].getx();
-						z1 = pucks[i].getz();
-						z2 = pucks[index].getz();
-						unitx = (x1-x2)/d;
-						unitz = (z1-z2)/d;
+						var unitx,unitz;
+						unitx = (pucks[i].getx()-pucks[index].getx())/d;
+						unitz = (pucks[i].getz()-pucks[index].getz())/d;
 						//fix speed
 						pucks[i].updatespeed(new speed(unitx,unitz));
 						pucks[index].updatespeed(new speed(-unitx,-unitz));
 						// fix position
-						pucks[i].mesh.position.set(x1+unitx,0,z1+unitz);
-						pucks[index].mesh.position.set(x2-unitx,0,z2-unitz);
+						pucks[i].mesh.position.set(pucks[i].getx()+unitx,0,pucks[i].getz()+unitz);
+						pucks[index].mesh.position.set(pucks[index].getx()-unitx,0,pucks[index].getz()-unitz);
 						sound2.play();
 						return;
 					}
@@ -237,14 +231,12 @@
 			camera = new THREE.PerspectiveCamera(50, window.innerWidth / window.innerHeight, 1, 1000);
 			camera.position.set (0,400,0);
 			let controls = new THREE.OrbitControls(camera, renderer.domElement);
-
-  
 			var floor = new THREE.Mesh (new THREE.PlaneGeometry(200,200), new THREE.MeshPhongMaterial({color:"gray"}));
 			floor.rotation.x = -Math.PI/2;
 			scene.add (floor);
 
   ////////////////////////////////////////////////////////
-			for (var i = 0;i<5;i++){
+			for (var i = 0;i<6;i++){
 				var x,y,a,b;
 				a = Math.floor(Math.random()*6);
 				b = Math.floor(Math.random()*6);
@@ -288,7 +280,7 @@
 				rate = 0;
 			}
 			else{
-				rate = 0.2;
+				rate = 0.3;
 			}
 			for (var i = 0;i < pucks.length;i++){
 				puck_colision(pucks[i]);
