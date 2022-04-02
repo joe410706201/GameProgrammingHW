@@ -23,7 +23,7 @@
 		<u>E-mail: u10706201@ms.ttu.edu.tw</u><br>
 		<button id='toggle'>Start Animation</button>
 	</div>
-	<script src="https://cdnjs.cloudflare.com/ajax/libs/stats.js/r16/Stats.min.js"></script>
+	<script src = "https://cdnjs.cloudflare.com/ajax/libs/stats.js/r16/Stats.min.js"></script>
 	<script src = "https://threejs.org/build/three.min.js"></script>
 	<script src = "https://threejs.org/examples/js/controls/OrbitControls.js"></script>
 	<script src = "https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
@@ -38,10 +38,8 @@
 		var used = [];
 		var sound1,sound2;
 		var lights = [];
-		var angle = 0;
 		var walls = [];
 		var pucks = [];
-		var puck,light;
 		$('#toggle').click(function(){
 				turn = !turn;
 				if (turn){
@@ -203,8 +201,8 @@
 						unitx = (pucks[i].getx()-pucks[index].getx())/d;
 						unitz = (pucks[i].getz()-pucks[index].getz())/d;
 						//fix speed
-						pucks[i].updatespeed(new speed(unitx,unitz));
-						pucks[index].updatespeed(new speed(-unitx,-unitz));
+						pucks[i].updatespeed(new speed(0.5*unitx,0.5*unitz));
+						pucks[index].updatespeed(new speed(-0.5*unitx,-0.5*unitz));
 						// fix position
 						pucks[i].mesh.position.set(pucks[i].getx()+unitx,0,pucks[i].getz()+unitz);
 						pucks[index].mesh.position.set(pucks[index].getx()-unitx,0,pucks[index].getz()-unitz);
@@ -259,8 +257,8 @@
 				else if(b%3 === 2){
 					z = -1;
 				}
-				light = new Light(hvalues[i*2]);
-				puck = new Puck(hvalues[i*2],new speed(a,b));
+				var light = new Light(hvalues[i*2]);
+				var puck = new Puck(hvalues[i*2],new speed(a,b));
 				pucks.push(puck);
 				lights.push(light);
 			}
