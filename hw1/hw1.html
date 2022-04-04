@@ -140,7 +140,7 @@
 		}
 		function Wall(pt,side,width,height){
 			box = new THREE.BoxGeometry(side,height,width);
-			this.wallmesh = new THREE.Mesh (box, new THREE.MeshBasicMaterial({color:"gray", transparent: true, opacity:0.6}));
+			this.wallmesh = new THREE.Mesh (box, new THREE.MeshPhongMaterial({color:"gray", transparent: true, opacity:0.6}));
 			this.wallmesh.position.x = pt.x;
 			this.wallmesh.position.y = pt.y;
 			this.wallmesh.position.z = pt.z;
