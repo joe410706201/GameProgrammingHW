@@ -139,7 +139,7 @@
 			}
 		}
 		function Wall(pt,side,width,height){
-			box = new THREE.BoxGeometry(side,height,width);
+			var box = new THREE.BoxGeometry(side,height,width);
 			this.wallmesh = new THREE.Mesh (box, new THREE.MeshPhongMaterial({color:"gray", transparent: true, opacity:0.6}));
 			this.wallmesh.position.x = pt.x;
 			this.wallmesh.position.y = pt.y;
@@ -148,13 +148,12 @@
 		}
 		class wall{
 			consturctor(pt,side,width,height){
-				this.side = side;
-				this.width = width;
-				this.height = height;
 				var box = new THREE.BoxGeometry(side,height,width);
-				var wallmesh = new THREE.Mesh (box, new THREE.MeshBasicMaterial({color:"pink", transparent: true, opacity:0.4}));
-				this.position = pt;
-				scene.add(wallmesh);
+				this.wallmesh = new THREE.Mesh (box, new THREE.MeshPhongMaterial({color:"gray", transparent: true, opacity:0.6}));
+				this.wallmesh.position.x = pt.x;
+				this.wallmesh.position.y = pt.y;
+				this.wallmesh.position.z = pt.z;
+				scene.add(this.wallmesh);
 			}
 			show(){
 				console.log(self.side);
