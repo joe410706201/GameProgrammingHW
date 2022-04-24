@@ -1,0 +1,194 @@
+<!DOCTYPE HTML>
+<html>
+	<head>
+		<style> 
+			body{
+				overflow:hidden;
+			} 
+		</style>
+	</head>
+	<title>hw2.html</title>
+	<body>
+		<div id="info">Character Animation<br>
+			<p>Homework 2</p>
+			<button id='view'>Switch View</button>
+			<button id='toggle'>toggle</button>
+			<style>
+				#info{
+					background-color: green;
+					position:  absolute;
+					top: 0px;
+					width: 100%;
+					padding: 10px;
+					text-align: center;
+					color: #ffff00;
+				}
+			</style>
+		<script src="https://cdnjs.cloudflare.com/ajax/libs/stats.js/r16/Stats.min.js"></script>
+		<script src = "https://threejs.org/build/three.min.js"></script>
+		<script src = "https://threejs.org/examples/js/controls/OrbitControls.js"></script>
+		<script src = "https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+		<script>
+			var angle = 0;
+			var dic = 1;
+			var maincharacter;
+			var clock = new THREE.Clock();
+			var turn = false;
+			var view = true;
+			var trackout,trackin;
+			var renderer, scene, camera;
+			$('#view').click(function(){
+				view = !view;
+				if (view){
+					$('#view').text('third');
+				}
+				else{
+					$('#view').text('first');
+				}
+			});
+			$('#toggle').click(function(){
+				turn = !turn;
+				if (turn){
+					$('#toggle').text('stop');
+				}
+				else{
+					$('#toggle').text('turn');
+				}
+			});
+			class point{
+				constructor(x,y,z){
+					this.x = x;
+					this.y = y;
+					this.z = z;
+				}
+			}
+			class Arm{
+				constructor(father,pos){
+					let normalMat = new THREE.MeshBasicMaterial({color: "blue"});
+					this.mesh = new THREE.Mesh(new THREE.BoxGeometry(1, 1 ,1),normalMat)
+					this.mesh.position.x = pos.x;
+					this.mesh.position.y = pos.y;
+					this.mesh.position.z = pos.z;
+					father.add(this.mesh)
+				}
+			}
+			class Leg{
+				constructor(father,pos){
+					let normalMat = new THREE.MeshBasicMaterial({color: "blue"});
+					this.mesh = new THREE.Mesh(new THREE.BoxGeometry(2, 2, 2),normalMat)
+					this.mesh.position.x = pos.x;
+					this.mesh.position.y = pos.y;
+					this.mesh.position.z = pos.z;
+					father.add(this.mesh)
+				}
+			}
+			class Head{
+				constructor(father,pos){
+					let normalMat = new THREE.MeshBasicMaterial({color: "red"});
+					this.mesh = new THREE.Mesh(new THREE.BoxGeometry(2, 1, 2),normalMat)
+					this.mesh.position.x = pos.x;
+					this.mesh.position.y = pos.y;
+					this.mesh.position.z = pos.z;
+					father.add(this.mesh)
+				}
+			}
+			class character{
+				constructor(){
+					this.torso = new THREE.Object3D();
+					let normalMat = new THREE.MeshBasicMaterial({color: "green"});
+					let torsoMesh = new THREE.Mesh(new THREE.BoxGeometry(2, 2, 2), normalMat)
+					this.torso.add(torsoMesh)
+					torsoMesh.position.y = 2;
+					let axis = new THREE.AxesHelper(5)
+					this.torso.add(axis)
+					let rightArm = new Arm(this.torso,new point(1,2.5,0));
+					let leftArm = new Arm(this.torso,new point(-1,2.5,0));
+					let rightLeg = new Arm(this.torso,new point(0.6,0.5,0));
+					let leftLeg = new Arm(this.torso,new point(-0.6,0.5,0));
+					let head = new Head(this.torso,new point(0,3.5,0))
+					scene.add(this.torso)
+				}
+				
+			}
+			init()
+			animate();
+			function maketrack(r,offset){
+				var points = [];
+				var theta
+				for (var i = 0;i<100;i++){
+					theta = i*Math.PI*2/100;
+					var point = new THREE.Vector3(r*Math.cos(theta)+offset,0,-r*Math.sin(theta));
+					points.push(point);
+				}
+				var geom = new THREE.BufferGeometry().setFromPoints(points);
+				var line = new THREE.Line(geom,new THREE.LineBasicMaterial({color: 0xff0000}));
+				return line;
+			}
+			
+			function init(){
+				stats = new Stats();
+				stats.domElement.style.position = 'absolute';
+				stats.domElement.style.top = '0px';
+				stats.domElement.style.zIndex = 100;
+				document.body.appendChild( stats.domElement );
+				renderer = new THREE.WebGLRenderer();
+				document.body.appendChild(renderer.domElement);
+				var width = window.innerWidth;
+				var height = window.innerHeight;
+				renderer.setSize(width,height);
+				scene = new	THREE.Scene();
+				var grid = new THREE.GridHelper(35,35);
+				scene.add(grid);
+				var axes = new THREE.AxesHelper(5);
+				scene.add(axes);
+				camera = new THREE.PerspectiveCamera(35,width/height,1,100);
+				camera.position.y = 16;
+				camera.position.x = 40;
+				camera.lookAt(new THREE.Vector3(0,0,0));
+				trackout = maketrack(8,8);
+				trackin = maketrack(6,-6);
+				scene.add(trackout,trackin);
+				maincharacter = new character();
+				let controls = new THREE.OrbitControls(camera, renderer.domElement);
+				
+			}
+			function animate(){
+				stats.update();
+				if (turn){	
+					let add = clock.getDelta()*(Math.PI/30)*2;
+					if (maincharacter.torso.position.x === 0){
+						if (dic === 1){
+							dic = 0
+							angle -= add;
+							maincharacter.torso.position.set (8*Math.cos(angle)+8, 0, 8*Math.sin(angle));
+						}else if (dic === 0){
+							dic = 1
+							console.log(maincharacter.torso.position)
+							angle += add;
+							maincharacter.torso.position.set (6*Math.cos(angle)-6, 0, 6*Math.sin(angle));
+						}
+					}
+					else{
+						if (dic === 1){
+							angle -= add;
+							maincharacter.torso.position.set (8*Math.cos(angle)+8, 0, 8*Math.sin(angle));
+						}
+						else{
+							angle += add;
+							maincharacter.torso.position.set (6*Math.cos(angle)-6, 0, 6*Math.sin(angle));
+						}
+					}
+				}
+					
+				maincharacter.torso.rotation.y =  -angle
+				requestAnimationFrame(animate);
+				render();
+			}
+			function render(){
+				renderer.render(scene,camera);
+			}
+			
+		</script>
+		</div>
+	</body>
+</html>
