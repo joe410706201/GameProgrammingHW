@@ -220,8 +220,8 @@
 						dic = 0
 					}
 				}
-				
-				maincharacter.rotate([0.5*angle,-0.5*angle,0.5*angle,-0.5*angle])
+				var arr = keyframe(clock.getElapsedTime())
+				maincharacter.rotate(arr)
 				maincharacter.torso.rotation.y =  angle
 				requestAnimationFrame(animate);
 				render();
