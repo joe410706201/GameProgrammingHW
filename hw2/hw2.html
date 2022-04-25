@@ -30,6 +30,19 @@
 		<script src = "https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
 		<script>
 			var angle = 0;
+			var pose1 = {
+				theta1: Math.PI/4,
+				theta2: 0
+			}
+			var pose2 = {
+				theta1: Math.PI*2/3,
+				theta2: Math.PI/3
+			}
+			var keys = [
+			[0, pose1],
+			[0.5, pose2],
+			[1, pose1]
+			];
 			var dic = 1;
 			var maincharacter;
 			var clock = new THREE.Clock();
@@ -40,10 +53,10 @@
 			$('#view').click(function(){
 				view = !view;
 				if (view){
-					$('#view').text('third');
+					$('#view').text('first');
 				}
 				else{
-					$('#view').text('first');
+					$('#view').text('third');
 				}
 			});
 			$('#toggle').click(function(){
@@ -71,6 +84,10 @@
 					this.mesh.position.z = pos.z;
 					father.add(this.mesh)
 				}
+				rotate(x){
+					this.mesh.rotation.x = x
+					
+				}
 			}
 			class Leg{
 				constructor(father,pos){
@@ -80,6 +97,9 @@
 					this.mesh.position.y = pos.y;
 					this.mesh.position.z = pos.z;
 					father.add(this.mesh)
+				}
+				rotate(x){
+					this.mesh.rotation.x = x
 				}
 			}
 			class Head{
@@ -106,13 +126,40 @@
 					let rightLeg = new Arm(this.torso,new point(0.6,0.5,0));
 					let leftLeg = new Arm(this.torso,new point(-0.6,0.5,0));
 					let head = new Head(this.torso,new point(0,3.5,0))
-					console.log(this.torso.position)
+					this.rightArm = rightArm
+					this.leftArm =leftArm
+					this.rightLeg = rightLeg
+					this.leftLeg =leftLeg
+					this.camera = new THREE.PerspectiveCamera(80, window.innerWidth / window.innerHeight, 1, 1000);
+					this.camera.position.set(0,10,-5)
+					this.camera.lookAt(-1,0,0)
+					this.torso.add(this.camera)
 					scene.add(this.torso)
+				}
+				rotate(arr){
+					this.rightArm.rotate(arr[0])
+					this.leftArm.rotate(arr[1])
+					this.rightLeg.rotate(arr[2])
+					this.leftLeg.rotate(arr[3])
 				}
 				
 			}
 			init()
 			animate();
+			function keyframe(t) {
+				var s = ((t - ts) % T) / T;
+
+				for (var i = 1; i < keys.length; i++) {
+					if (keys[i][0] > s) break;
+				}
+			// take i-1
+			var ii = i - 1;
+			var a = (s - keys[ii][0]) / (keys[ii + 1][0] - keys[ii][0]);
+			intKey = [keys[ii][1].theta1 * (1 - a) + keys[ii + 1][1].theta1 * a,
+            keys[ii][1].theta2 * (1 - a) + keys[ii + 1][1].theta2 * a
+			];
+
+			}
 			function maketrack(r,offset){
 				var points = [];
 				var theta
@@ -151,12 +198,13 @@
 				scene.add(trackout,trackin);
 				maincharacter = new character();
 				let controls = new THREE.OrbitControls(camera, renderer.domElement);
+				scene.add(this.camera)
 				
 			}
 			function animate(){
 				stats.update();
 				if (turn){	
-					let add = 2*clock.getDelta()*(Math.PI/30)*2;
+					let add = clock.getDelta()*(Math.PI/30)*2;
 					if  (dic === 0){
 						angle = angle-add
 						maincharacter.torso.position.set(8*Math.cos(angle)+8, 0, -8*Math.sin(angle));
@@ -172,13 +220,19 @@
 						dic = 0
 					}
 				}
-					
+				
+				maincharacter.rotate([0.5*angle,-0.5*angle,0.5*angle,-0.5*angle])
 				maincharacter.torso.rotation.y =  angle
 				requestAnimationFrame(animate);
 				render();
 			}
 			function render(){
-				renderer.render(scene,camera);
+				if (view){
+					renderer.render(scene,camera);
+				}
+				else{
+					renderer.render(scene,maincharacter.camera);
+				}
 			}
 			
 		</script>
