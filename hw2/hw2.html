@@ -130,7 +130,7 @@
 					this.rightLeg = rightLeg
 					this.leftLeg =leftLeg
 					this.camera = new THREE.PerspectiveCamera(80, window.innerWidth / window.innerHeight, 1, 1000);
-					this.camera.position.set(0,10,5)
+					this.camera.position.set(0,8,5)
 					this.camera.lookAt(1,0,0)
 					this.torso.add(this.camera)
 					scene.add(this.torso)
@@ -222,9 +222,9 @@
 					else if (maincharacter.torso.position.x === 0 && dic === 1){
 						dic = 0
 					}
+					var arr = keyframe(clock.getElapsedTime())
+					maincharacter.rotate(arr)
 				}
-				var arr = keyframe(clock.getElapsedTime())
-				maincharacter.rotate(arr)
 				maincharacter.torso.rotation.y =  angle
 				requestAnimationFrame(animate);
 				render();
