@@ -1,0 +1,297 @@
+<!DOCTYPE HTML>
+<html>
+	<head>
+		<style> 
+			body{
+				overflow:hidden;
+			} 
+		</style>
+	</head>
+	<title>hw4.html</title>
+	<body>
+		<div id="info">Steer & Group Steer<br>
+			<p>Homework 4</p>
+			<button id='view'>Switch View</button>
+			<style>
+				#info{
+					background-color: green;
+					position:  absolute;
+					top: 0px;
+					width: 100%;
+					padding: 10px;
+					text-align: center;
+					color: #ffff00;
+				}
+			</style>
+		<script src="https://cdnjs.cloudflare.com/ajax/libs/stats.js/r16/Stats.min.js"></script>
+		<script src = "https://threejs.org/build/three.min.js"></script>
+		<script src="https://threejs.org/examples/js/misc/Gyroscope.js"></script>
+		<script src = "https://threejs.org/examples/js/controls/OrbitControls.js"></script>
+		<script src="https://jyunming-chen.github.io/tutsplus/js/KeyboardState.js"></script>
+		<script src = "https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+		<script>
+			var angle = 0;
+			var power, angle;
+			var keyboard = new KeyboardState();
+			var pos = new THREE.Vector3();
+			var vel = new THREE.Vector3();
+			var force = new THREE.Vector3();
+			var clock = new THREE.Clock();
+			var ts = clock.getElapsedTime();
+			var pose1 = {
+				theta1: Math.PI/4
+				
+			}
+			var pos = new THREE.Vector3();
+			var pose2 = {
+				theta1: -Math.PI/4
+			}
+			var keys = [
+			[0, pose1],
+			[0.5, pose2],
+			[1, pose1]
+			];
+			
+			var maincharacter;
+			var turn = false;
+			var view = true;
+			var track;
+			var renderer, scene, camera;
+			$('#view').click(function(){
+				view = !view;
+				if (view){
+					$('#view').text('first');
+				}
+				else{
+					$('#view').text('third');
+				}
+			});
+			(function() {
+				Math.clamp = function(val,min,max){
+				return Math.min(Math.max(val,min),max);
+    
+			}})();
+		
+			class point{
+				constructor(x,y,z){
+					this.x = x;
+					this.y = y;
+					this.z = z;
+				}
+			}
+			class Arm{
+				constructor(father,pos){
+					let normalMat = new THREE.MeshBasicMaterial({color: "blue"});
+					this.mesh = new THREE.Mesh(new THREE.BoxGeometry(0.5, 1 ,0.5),normalMat)
+					this.mesh.position.x = pos.x;
+					this.mesh.position.y = pos.y;
+					this.mesh.position.z = pos.z;
+					father.add(this.mesh)
+				}
+				rotate(x){
+					this.mesh.rotation.x = x
+					
+				}
+			}
+			class Leg{
+				constructor(father,pos){
+					const loader = new THREE.TextureLoader()
+					const texture = loader.load('https://i.imgur.com/6I5uDxR.jpg')
+					let normalMat = new THREE.MeshBasicMaterial({map: texture});
+					this.mesh = new THREE.Mesh(new THREE.BoxGeometry(0.5, 1.5, 0.5),normalMat)
+					this.mesh.position.x = pos.x;
+					this.mesh.position.y = pos.y;
+					this.mesh.position.z = pos.z;
+					father.add(this.mesh)
+				}
+				rotate(x){
+					this.mesh.rotation.x = x
+				}
+			}
+			class Head{
+				constructor(father,pos){
+					const loader = new THREE.TextureLoader()
+					let matArray = [];
+					matArray.push(new THREE.MeshBasicMaterial({
+						map: loader.load('https://i.imgur.com/ZesSigy.png') // front
+					}));
+					matArray.push(new THREE.MeshBasicMaterial({
+						map: loader.load('https://i.imgur.com/YDhXk3g.jpg') // back
+					}));
+					matArray.push(new THREE.MeshBasicMaterial({
+						map: loader.load('') // top
+					}));
+					matArray.push(new THREE.MeshBasicMaterial({
+						map: loader.load('') // bottom
+					}));
+					matArray.push(new THREE.MeshBasicMaterial({
+						map: loader.load('https://i.imgur.com/A1XrnlN.jpg') //
+					}));
+					matArray.push(new THREE.MeshBasicMaterial({
+						map: loader.load('https://i.imgur.com/99t61xd.jpg') // 
+						
+					}));
+					
+					this.mesh = new THREE.Mesh(new THREE.BoxGeometry(1, 1, 1),matArray)
+					this.mesh.position.x = pos.x;
+					this.mesh.position.y = pos.y;
+					this.mesh.position.z = pos.z;
+					father.add(this.mesh)
+				}
+			}
+			class character{
+				constructor(){
+					const loader = new THREE.TextureLoader()
+					const texture = loader.load('https://i.imgur.com/UVPax6N.jpg')
+					const Mat = new THREE.MeshBasicMaterial({map:texture});
+					this.torso = new THREE.Object3D();
+					let normalMat = new THREE.MeshBasicMaterial({color: "green"});
+					let torsoMesh = new THREE.Mesh(new THREE.BoxGeometry(1, 1, 1), Mat)
+					this.torso.add(torsoMesh)
+					torsoMesh.position.y = 1;
+					let rightArm = new Arm(this.torso,new point(0,1.5,0.5));
+					let leftArm = new Arm(this.torso,new point(0,1.5,-0.5));
+					let rightLeg = new Arm(this.torso,new point(0,0.25,0.25));
+					let leftLeg = new Arm(this.torso,new point(0,0.25,-0.25));
+					let head = new Head(this.torso,new point(0,2,0))
+					this.rightArm = rightArm
+					this.leftArm =leftArm
+					this.rightLeg = rightLeg
+					this.leftLeg =leftLeg
+					this.camera = new THREE.PerspectiveCamera(80, window.innerWidth / window.innerHeight, 1, 1000);
+					this.camera.position.set(-5,8,0)
+					this.camera.lookAt(1,0,0)
+					this.torso.add(this.camera)
+					scene.add(this.torso)
+				}
+				rotate(arr){
+					this.rightArm.rotate(arr[0])
+					this.leftArm.rotate(-arr[1])
+					this.rightLeg.rotate(-arr[2])
+					this.leftLeg.rotate(arr[3])
+				}
+				
+			}
+			init()
+			animate();/*
+			function keyframe(t) {
+				var s = ((t - ts) % 2) / 2;
+
+				for (var i = 1; i < keys.length; i++) {
+					if (keys[i][0] > s) break;
+				}
+			// take i-1
+			var ii = i - 1;
+			var a = (s - keys[ii][0]) / (keys[ii + 1][0] - keys[ii][0]);
+			intKey = [keys[ii][1].theta1 * (1 - a) + keys[ii + 1][1].theta1 * a,
+			keys[ii][1].theta1 * (1 - a) + keys[ii + 1][1].theta1 * a,
+			keys[ii][1].theta1 * (1 - a) + keys[ii + 1][1].theta1 * a,
+			keys[ii][1].theta1 * (1 - a) + keys[ii + 1][1].theta1 * a
+
+			];
+			return intKey;
+
+			}*/
+			function maketrack(r){
+				var points = [];
+				var theta
+				for (var i = 0;i<100;i++){
+					theta = i*Math.PI*2/100;
+					var point = new THREE.Vector3(r*Math.cos(theta),0,-r*Math.sin(theta));
+					points.push(point);
+				}
+				var geom = new THREE.BufferGeometry().setFromPoints(points);
+				var line = new THREE.Line(geom,new THREE.LineBasicMaterial({color: 0xff0000}));
+				return line;
+			}
+			
+			function init(){
+				stats = new Stats();
+				stats.domElement.style.position = 'absolute';
+				stats.domElement.style.top = '0px';
+				stats.domElement.style.zIndex = 100;
+				document.body.appendChild( stats.domElement );
+				renderer = new THREE.WebGLRenderer();
+				document.body.appendChild(renderer.domElement);
+				var width = window.innerWidth;
+				var height = window.innerHeight;
+				renderer.setSize(width,height);
+				scene = new	THREE.Scene();
+				var grid = new THREE.GridHelper(35,35);
+				scene.add(grid);
+				var axes = new THREE.AxesHelper(5);
+				scene.add(axes);
+				camera = new THREE.PerspectiveCamera(35,width/height,1,100);
+				camera.position.y = 16;
+				camera.position.x = 40;
+				camera.lookAt(new THREE.Vector3(0,0,0));
+				track = maketrack(8);
+				
+				scene.add(track);
+				maincharacter = new character();
+				let controls = new THREE.OrbitControls(camera, renderer.domElement);
+				scene.add(this.camera)
+				power = 2.0;
+				angle = 0.0;
+				
+			}
+			function update(dt) {
+
+			keyboard.update();
+  
+			if (vel.length() > 0) {
+				angle = 1.5*Math.PI + Math.atan2(vel.x, vel.z); 
+			}
+
+			if (keyboard.pressed("space"))  
+				power = 0.1;               
+			if (keyboard.pressed("up"))  
+				power *= 1.2;        
+			if (keyboard.pressed("down"))  
+				power /= 1.2;   
+ 	
+			power = Math.clamp (power, 0, 80.0); 
+  
+  
+  var angle_thrust = angle;
+	if (keyboard.pressed("left"))
+		angle_thrust += 0.3;
+	if (keyboard.pressed("right"))
+			angle_thrust -= 0.3;
+    
+  // compute force
+		var thrust = new THREE.Vector3(1,0,0).multiplyScalar(power).applyAxisAngle (new THREE.Vector3(0,1,0), angle_thrust);
+			force.copy (thrust);
+			force.add(vel.clone().multiplyScalar(-2))
+
+  // eulers
+			vel.add(force.clone().multiplyScalar(dt));
+			pos.add(vel.clone().multiplyScalar(dt));
+		}
+
+		function animate() {
+
+			var dt = clock.getDelta();
+			update(dt);
+
+			// car update
+			maincharacter.torso.position.copy(pos);
+			console.log(pos)
+			maincharacter.torso.rotation.y = angle;
+
+			requestAnimationFrame(animate);
+			render();
+		}
+
+			function render(){
+				if (view){
+					renderer.render(scene,camera);
+				}
+				else{
+					renderer.render(scene,maincharacter.camera);
+				}
+			}
+		</script>
+		</div>
+	</body>
+</html>
