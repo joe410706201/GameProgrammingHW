@@ -48,7 +48,7 @@
 		}
 		
 		var gue = parseInt(x);
-		if (gue == NaN){
+		if (gue === NaN){
 			document.getElementById("result").innerHTML="please Enter number only."
 			return;
 		}
@@ -76,7 +76,7 @@
 			
 			return;
 		}
-		if (guess < ans){
+		if (gue < ans){
 			if (dob <gue){
 				dob = gue;
 			}
