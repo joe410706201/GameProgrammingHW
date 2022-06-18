@@ -18,7 +18,7 @@
 		<option value = 4>very hard</option>
 		<option value = 5>ultra</option>
 	</select>
-	<button id = "level" type = "button" onclick = "getlevel()">submit</button>
+	<button id = "levelbt" type = "button" onclick = "getlevel()">submit</button>
 	<h3 id = "res"></h3>
 	<hr>
 	input your guess<input id ="Guess" type="text" name="" value="">
@@ -28,7 +28,7 @@
 	var ans,maxstep,step;
 	var upb,dob;
 	const buttonans = document.getElementById("answer")
-	const buttonlevel = document.getElementById("level")
+	const buttonlevel = document.getElementById("levelbt")
 	step = 0;
 	upb = 10000;
 	dob = 0;
