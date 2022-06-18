@@ -56,14 +56,12 @@
 		if (ans === gue ){
 			document.getElementById("result").innerHTML="you got answer. answer is "+gue
 			buttonans.disabled = true;
-			buttonlevel.disabled = true;
 			return;
 		}
 		
 		if (step === maxstep){
 			document.getElementById("result").innerHTML="you lose."
 			buttonans.disabled = true;
-			buttonlevel.disabled = true;
 			return;
 		}
 		
@@ -72,8 +70,6 @@
 				upb = gue;
 			}
 			document.getElementById("result").innerHTML="your guess too big. range in("+dob+"~"+upb+")<br>"+(maxstep-step)+" chance left"
-			
-			
 			return;
 		}
 		if (gue < ans){
@@ -101,7 +97,7 @@
 		document.getElementById("res").innerHTML="you chosed "+levels[x]+"<br>you have "+chances[x]+" chances";
 		maxstep = chances[x];
 		ans = randomans();
-		buttonlevel.disabled = false;
+		buttonlevel.disabled = true;
 	};
 	</script>
     </body>
