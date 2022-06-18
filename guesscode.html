@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html>
+    <head>
+		<meta charset = "utf-8">
+		<title>number guess game</title>
+		
+    </head>
+	<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/84/three.min.js"></script>
+	<body>
+		<h1>number guess game</h1>
+		please chose a level(very eazy to ultra)<br>
+		<select id = "level">
+		<option value = "">chose level</option>
+		<option value = 0>very eazy</option>
+		<option value = 1>eazy</option>
+		<option value = 2>medium</option>
+		<option value = 3>hard</option>
+		<option value = 4>very hard</option>
+		<option value = 5>ultra</option>
+	</select>
+	<button type = "button" onclick = "getlevel()">submit</button>
+	<h3 id = "res"></h3>
+	
+	<script>
+	var ans = 0;
+	let levels = ["very eazy","eazy","medium","hard","very hard","ultra"];
+	let chances = [25,22,15,10,8,6];
+	function randomans(){
+		var ans = Math.floor(Math.random() * 10000) + 1000;
+		return ans;
+	}
+
+	function getlevel(){
+		var x = document.getElementById("level").value;
+		if (x == undefined){
+			document.getElementById("res").innerHTML="you don't chosed anyone"
+			return;
+		}
+		document.getElementById("res").innerHTML="you chosed "+levels[x]+"<br>you have "+chances[x]+" chances";
+		ans = randomans();
+		console.log(ans);
+	};
+	</script>
+    </body>
+</html>
