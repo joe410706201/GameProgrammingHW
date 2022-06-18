@@ -18,27 +18,90 @@
 		<option value = 4>very hard</option>
 		<option value = 5>ultra</option>
 	</select>
-	<button type = "button" onclick = "getlevel()">submit</button>
+	<button id = "level" type = "button" onclick = "getlevel()">submit</button>
 	<h3 id = "res"></h3>
-	
+	<hr>
+	input your guess<input id ="Guess" type="text" name="" value="">
+	<button id = "answer" type = "button" onclick = "guess()">submit my guess</button>
+	<p id = "result"></p>
 	<script>
-	var ans = 0;
+	var ans,maxstep,step;
+	var upb,dob;
+	const buttonans = document.getElementById("answer")
+	const buttonlevel = document.getElementById("level")
+	step = 0;
+	upb = 10000;
+	dob = 0;
 	let levels = ["very eazy","eazy","medium","hard","very hard","ultra"];
 	let chances = [25,22,15,10,8,6];
 	function randomans(){
-		var ans = Math.floor(Math.random() * 10000) + 1000;
+		var ans = Math.floor(Math.random() * 10000);
 		return ans;
-	}
+	};
+	
+	function guess(){
+		var x = document.getElementById("Guess").value;
+		document.getElementById("Guess").value= "";
+		if (x === ""){
+			document.getElementById("result").innerHTML="you don't Enter anything."
+			return;
+		}
+		
+		var gue = parseInt(x);
+		if (gue == NaN){
+			document.getElementById("result").innerHTML="please Enter number only."
+			return;
+		}
+		step += 1;
+		if (ans === gue ){
+			document.getElementById("result").innerHTML="you got answer. answer is "+gue
+			buttonans.disabled = true;
+			buttonlevel.disabled = true;
+			return;
+		}
+		
+		if (step === maxstep){
+			document.getElementById("result").innerHTML="you lose."
+			buttonans.disabled = true;
+			buttonlevel.disabled = true;
+			return;
+		}
+		
+		if (gue > ans){
+			if (upb>gue){
+				upb = gue;
+			}
+			document.getElementById("result").innerHTML="your guess too big. range in("+dob+"~"+upb+")<br>"+(maxstep-step)+" chance left"
+			
+			
+			return;
+		}
+		if (guess < ans){
+			if (dob <gue){
+				dob = gue;
+			}
+			document.getElementById("result").innerHTML="your guess too small.  range in("+dob+"~"+upb+")<br>"+(maxstep-step)+" chance left"
+			return;
+		}
+		
+	};
 
 	function getlevel(){
+		buttonans.disabled = false;
+		step = 0;
+		upb = 10000;
+		dob = 0;
+		document.getElementById("result").innerHTML=""
+		document.getElementById("Guess").value= "";
 		var x = document.getElementById("level").value;
-		if (x == undefined){
-			document.getElementById("res").innerHTML="you don't chosed anyone"
+		if (x === ""){
+			document.getElementById("res").innerHTML="you don't chosed anyone."
 			return;
 		}
 		document.getElementById("res").innerHTML="you chosed "+levels[x]+"<br>you have "+chances[x]+" chances";
+		maxstep = chances[x];
 		ans = randomans();
-		console.log(ans);
+		buttonlevel.disabled = false;
 	};
 	</script>
     </body>
