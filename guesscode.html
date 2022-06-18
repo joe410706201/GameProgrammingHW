@@ -56,12 +56,14 @@
 		if (ans === gue ){
 			document.getElementById("result").innerHTML="you got answer. answer is "+gue
 			buttonans.disabled = true;
+			buttonlevel.disabled = false;
 			return;
 		}
 		
 		if (step === maxstep){
 			document.getElementById("result").innerHTML="you lose."
 			buttonans.disabled = true;
+			buttonlevel.disabled = false;
 			return;
 		}
 		
